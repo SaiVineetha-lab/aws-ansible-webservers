@@ -1,0 +1,65 @@
+---
+- name: Deploy webserver resources
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Update package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Create website page
+      ansible.builtin.template:
+        src: templates/index.html.j2
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart Nginx
+
+    - name: Configure Nginx for port 8080
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/sjsu-web
+        mode: "0644"
+        content: |
+          server {
+              listen 8080 default_server;
+              listen [::]:8080 default_server;
+
+              root /var/www/html;
+              index index.html;
+
+              server_name _;
+          }
+      notify: Restart Nginx
+
+    - name: Enable custom Nginx configuration
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/sjsu-web
+        dest: /etc/nginx/sites-enabled/sjsu-web
+        state: link
+      notify: Restart Nginx
+
+    - name: Remove default Nginx configuration
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Restart Nginx
+
+    - name: Ensure Nginx is enabled and running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
