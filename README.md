@@ -25,3 +25,16 @@ Test connectivity:
 
 ```bash
 ansible all -i inventory.ini -m ping
+
+## 7. Upload evidence
+
+If possible, create an `evidence` folder and upload:
+
+```text
+evidence/
+├── aws-instances.png
+├── ansible-ping.png
+├── deployment-success.png
+├── vm1-browser.png
+├── vm2-browser.png
+└── undeployment-success.png
