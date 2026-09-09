@@ -1,0 +1,33 @@
+---
+- name: Undeploy webserver resources
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Stop Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: stopped
+      failed_when: false
+
+    - name: Remove Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: absent
+        purge: true
+        autoremove: true
+
+    - name: Remove website files
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: Remove custom Nginx configuration
+      ansible.builtin.file:
+        path: /etc/nginx/sites-available/sjsu-web
+        state: absent
+
+    - name: Remove enabled Nginx configuration link
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/sjsu-web
+        state: absent
